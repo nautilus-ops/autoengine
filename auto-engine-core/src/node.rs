@@ -7,6 +7,7 @@ pub mod mouse_move;
 pub mod ocr;
 pub mod screen_capture;
 pub mod start;
+pub mod text_replace;
 pub mod time_wait;
 #[cfg(feature = "wasm")]
 pub mod wasm;

@@ -87,6 +87,9 @@ where
 
             if let serde_json::Value::String(s) = &val {
                 let res = utils::parse_variables(ctx, s).await;
+                
+                log::info!("node name: {}, ======> result: {}", node_name, res);
+                
                 val = match field.field_type {
                     FieldType::String
                     | FieldType::Image

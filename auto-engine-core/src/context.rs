@@ -107,11 +107,14 @@ impl Context {
     }
 
     pub fn path_resource(&self) -> PathBuf {
-        if let Some(handle) = self.app_handle.clone() {
-            if cfg!(debug_assertions) {
-                return PathBuf::from("");
+        #[cfg(feature = "tauri")]
+        {
+            if let Some(handle) = self.app_handle.clone() {
+                if cfg!(debug_assertions) {
+                    return PathBuf::from("");
+                }
+                return handle.path().resource_dir().unwrap().to_path_buf();
             }
-            return handle.path().resource_dir().unwrap().to_path_buf();
         }
         PathBuf::from("")
     }

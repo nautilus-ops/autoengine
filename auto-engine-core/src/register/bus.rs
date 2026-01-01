@@ -16,6 +16,8 @@ use crate::node::ocr::node::OcrNode;
 use crate::node::ocr::runner::OcrRunnerFactory;
 use crate::node::screen_capture::node::ScreenCaptureNode;
 use crate::node::screen_capture::runner::ScreenCaptureRunnerFactory;
+use crate::node::text_replace::node::TextReplaceNode;
+use crate::node::text_replace::runner::TextReplaceRunnerFactory;
 use crate::node::start::node::StartNode;
 use crate::node::start::runner::StartRunnerFactory;
 use crate::node::time_wait::node::TimeWaitNode;
@@ -75,6 +77,10 @@ impl NodeRegisterBus {
         self.register(
             Box::new(DataAggregatorNode::new()),
             Box::new(DataAggregatorRunnerFactory::new()),
+        );
+        self.register(
+            Box::new(TextReplaceNode::new()),
+            Box::new(TextReplaceRunnerFactory::new()),
         );
         self.register(Box::new(GptNode::new()), Box::new(GptRunnerFactory::new()));
         self
