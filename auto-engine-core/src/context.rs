@@ -1,14 +1,20 @@
 use crate::utils;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use tauri::async_runtime::RwLock;
 use tauri::Manager;
+use tauri::async_runtime::RwLock;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValueItem {
+    pub description: String,
+    pub value: serde_json::Value,
+}
 
 #[derive(Debug)]
 pub struct Context {
-    pub string_value: Arc<RwLock<HashMap<String, serde_json::Value>>>,
+    pub value: Arc<RwLock<HashMap<String, ValueItem>>>,
     pub(crate) screen_scale: f64,
     pub(crate) pipeline_path: PathBuf,
     pub(crate) workflow_path: PathBuf,
@@ -20,7 +26,7 @@ impl Context {
     #[cfg(feature = "tauri")]
     pub fn new(path: PathBuf, app_handle: Option<tauri::AppHandle>) -> Self {
         Self {
-            string_value: Arc::new(RwLock::new(HashMap::new())),
+            value: Arc::new(RwLock::new(HashMap::new())),
             screen_scale: 1.0,
             pipeline_path: path.clone(),
             workflow_path: path.clone(),
@@ -31,7 +37,7 @@ impl Context {
     #[cfg(not(feature = "tauri"))]
     pub fn new(path: PathBuf) -> Self {
         Self {
-            string_value: Arc::new(RwLock::new(HashMap::new())),
+            value: Arc::new(RwLock::new(HashMap::new())),
             screen_scale: 1.0,
             pipeline_path: path.clone(),
             workflow_path: path.clone(),
@@ -44,20 +50,32 @@ impl Context {
     }
 
     pub async fn set_string_value(&self, key: &str, value: &str) -> Result<(), String> {
-        self.set_value::<String>(key, value.to_string()).await
+        self.set_value::<String>(key, value.to_string(), String::new())
+            .await
     }
 
-    pub async fn set_value<T: Serialize>(&self, key: &str, value: T) -> Result<(), String> {
-        let mut map = self.string_value.write().await;
+    pub async fn set_value<T: Serialize>(
+        &self,
+        key: &str,
+        value: T,
+        description: String,
+    ) -> Result<(), String> {
+        let mut map = self.value.write().await;
         map.insert(
             key.to_string(),
-            serde_json::to_value(value).map_err(|e| format!("{:?}", e))?,
+            ValueItem {
+                description,
+                value: serde_json::to_value(value).map_err(|e| format!("{:?}", e))?,
+            },
         );
         Ok(())
     }
     pub async fn get_value(&self, key: &str) -> Option<serde_json::Value> {
-        let map = self.string_value.read().await;
-        map.get(key).cloned()
+        let map = self.value.read().await;
+        if let Some(item) = map.get(key).cloned() {
+            return Some(item.value);
+        }
+        None
     }
 
     pub async fn get_value_parse(&self, key: &str) -> Option<serde_json::Value> {
@@ -80,7 +98,7 @@ impl Context {
         default_value
     }
 
-    pub fn load_image_path(&self, image: &str) -> Result<PathBuf, String> {
+    pub fn path_image(&self, image: &str) -> Result<PathBuf, String> {
         let image_path = self.workflow_path.join("images").join(image);
         if !image_path.exists() {
             return Err(format!("Image {} does not exist", image));
@@ -88,13 +106,22 @@ impl Context {
         Ok(image_path)
     }
 
-    pub fn resource_path(&self) -> PathBuf {
-        if let Some(handle) = self.app_handle.clone(){
+    pub fn path_resource(&self) -> PathBuf {
+        if let Some(handle) = self.app_handle.clone() {
             if cfg!(debug_assertions) {
-                return PathBuf::from("")
+                return PathBuf::from("");
             }
-            return handle.path().resource_dir().unwrap().to_path_buf()
+            return handle.path().resource_dir().unwrap().to_path_buf();
         }
         PathBuf::from("")
+    }
+
+    pub async fn values(&self) -> HashMap<String, ValueItem> {
+        let mut res: HashMap<String, ValueItem> = HashMap::new();
+        let map = self.value.read().await;
+        map.iter().for_each(|(k, v)| {
+            res.insert(k.clone(), v.clone());
+        });
+        res
     }
 }

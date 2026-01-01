@@ -60,18 +60,6 @@ impl NodeDefine for OcrNode {
                 default: None,
                 condition: None,
             },
-            SchemaField {
-                name: "confidence".to_string(),
-                field_type: FieldType::Number,
-                item_type: None,
-                description: Some(I18nValue {
-                    zh: "对应文本的置信度得分".to_string(),
-                    en: "Confidence score for the detected text".to_string(),
-                }),
-                enums: vec![],
-                default: None,
-                condition: None,
-            },
         ]
     }
 

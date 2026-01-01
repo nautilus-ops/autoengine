@@ -31,3 +31,4 @@ pub mod plugin;
 
 mod action;
 pub mod notification;
+pub mod mcp;

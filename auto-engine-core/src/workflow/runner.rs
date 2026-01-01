@@ -282,6 +282,7 @@ fn handle_nod(
                                 &node_name,
                                 run_input.clone(),
                                 node.input_schema().clone(),
+                                node.output_schema(Default::default()).clone(),
                             )
                             .await
                         {
@@ -316,6 +317,7 @@ fn handle_nod(
                                 &node_name,
                                 run_input.clone(),
                                 node.input_schema().clone(),
+                                node.output_schema(Default::default()).clone(),
                             )
                             .await
                         {

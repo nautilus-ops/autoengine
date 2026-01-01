@@ -26,6 +26,11 @@ impl NodeEventPayload {
     pub fn running(name: String) -> NodeEventPayload {
         NodeEventPayload::new::<String>("running".to_string(), name, None)
     }
+
+    pub fn running_with_payload<D: Serialize>(name: String, result: Option<D>) -> NodeEventPayload {
+        NodeEventPayload::new::<D>("running".to_string(), name, result)
+    }
+
     pub fn waiting(name: String) -> NodeEventPayload {
         NodeEventPayload::new::<String>("waiting".to_string(), name, None)
     }
