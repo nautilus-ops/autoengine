@@ -31,7 +31,7 @@ impl NodeRunner for DataAggregatorRunner {
         param: Self::ParamType,
     ) -> Result<Option<HashMap<String, Value>>, String> {
         {
-            let map = ctx.string_value.read().await;
+            let map = ctx.value.read().await;
             log::info!("map: {:?}", map.keys());
         }
         let mut values = vec![];

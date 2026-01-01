@@ -47,7 +47,8 @@ pub trait NodeRunnerControl: Send + Sync {
         ctx: &Context,
         node_name: &str,
         params: HashMap<String, serde_json::Value>,
-        schema_field: Vec<SchemaField>,
+        input_schema: Vec<SchemaField>,
+        output_schema: Vec<SchemaField>,
     ) -> Result<Option<HashMap<String, serde_json::Value>>, String>;
 }
 
@@ -71,11 +72,12 @@ where
         ctx: &Context,
         node_name: &str,
         params: HashMap<String, serde_json::Value>,
-        schema_field: Vec<SchemaField>,
+        input_schema: Vec<SchemaField>,
+        output_schema: Vec<SchemaField>,
     ) -> Result<Option<HashMap<String, serde_json::Value>>, String> {
         let mut params = params;
         log::info!("params: {:?}, size: {}", params, params.len());
-        for field in schema_field.iter() {
+        for field in input_schema.iter() {
             log::info!("field: {:?}", field);
             let default = field.default.clone().unwrap_or_default();
             let mut val = params
@@ -86,9 +88,10 @@ where
             if let serde_json::Value::String(s) = &val {
                 let res = utils::parse_variables(ctx, s).await;
                 val = match field.field_type {
-                    FieldType::String | FieldType::Image | FieldType::File => {
-                        serde_json::Value::String(res.clone())
-                    }
+                    FieldType::String
+                    | FieldType::Image
+                    | FieldType::File
+                    | FieldType::Password => serde_json::Value::String(res.clone()),
                     FieldType::Number => match res.trim() {
                         "" => serde_json::Value::Number(0.into()),
 
@@ -111,7 +114,7 @@ where
                     },
                     FieldType::Boolean => match res.to_lowercase().as_str() {
                         "true" | "1" => serde_json::Value::Bool(true),
-                        "false" | "0" => serde_json::Value::Bool(false),
+                        "false" | "0" | "" => serde_json::Value::Bool(false),
                         _ => {
                             return Err(format!(
                                 "Field '{}' cannot be parsed as a boolean: {}",
@@ -139,11 +142,18 @@ where
 
         if let Some(result) = self.runner.run(ctx, params).await? {
             for (name, value) in result.iter() {
+                let mut description = String::new();
+                for field in &output_schema {
+                    if field.name.as_str() == name.as_str() {
+                        description = field.description.clone().unwrap_or(Default::default()).en;
+                        break
+                    }
+                }
                 log::info!(
                     "set value {}",
                     format!("ctx.{}.{}", node_name, name).as_str()
                 );
-                ctx.set_value(format!("ctx.{}.{}", node_name, name).as_str(), value)
+                ctx.set_value(format!("ctx.{}.{}", node_name, name).as_str(), value, description)
                     .await?;
             }
             return Ok(Some(result));

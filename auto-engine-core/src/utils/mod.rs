@@ -8,7 +8,7 @@ pub static REGEX_PARSE_VARIABLES: Lazy<Regex> =
 // String: the value name or key
 // bool: if need get value from Context
 pub async fn parse_variables(context: &Context, input: &str) -> String {
-    let ctx = context.string_value.read().await;
+    let ctx = context.value.read().await;
 
     REGEX_PARSE_VARIABLES
         .replace_all(input, |caps: &regex::Captures| {
@@ -16,7 +16,7 @@ pub async fn parse_variables(context: &Context, input: &str) -> String {
             let default = caps.get(2).map(|m| m.as_str()).unwrap_or("");
 
             if let Some(value) = ctx.get(var_name) {
-                return serde_json::to_string(&value)
+                return serde_json::to_string(&value.value)
                     .unwrap_or_default()
                     .trim_matches('"')
                     .to_string();
@@ -27,14 +27,14 @@ pub async fn parse_variables(context: &Context, input: &str) -> String {
 }
 
 pub async fn try_parse_variables(context: &Context, input: &str) -> Result<String, String> {
-    let ctx = context.string_value.read().await;
+    let ctx = context.value.read().await;
     let mut err: Option<String> = None;
 
     let result = REGEX_PARSE_VARIABLES.replace_all(input, |caps: &regex::Captures| {
         let var_name = &caps[1];
 
         let variable = match ctx.get(var_name) {
-            Some(value) => serde_json::to_string(value)
+            Some(value) => serde_json::to_string(&value.value)
                 .unwrap_or_default()
                 .trim_matches('"')
                 .to_string(),

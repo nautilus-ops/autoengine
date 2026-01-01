@@ -2,6 +2,8 @@ use crate::types::field::{FieldType, SchemaField};
 use crate::types::node::{I18nValue, NodeDefine};
 use std::collections::HashMap;
 
+pub const START_NODE_TYPE: &'static str = "Start";
+
 pub struct StartNode;
 
 impl StartNode {
@@ -12,7 +14,7 @@ impl StartNode {
 
 impl NodeDefine for StartNode {
     fn action_type(&self) -> String {
-        String::from("Start")
+        String::from(START_NODE_TYPE)
     }
 
     fn name(&self) -> I18nValue {

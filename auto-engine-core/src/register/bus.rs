@@ -1,3 +1,5 @@
+use crate::node::ai::gpt::node::GptNode;
+use crate::node::ai::gpt::runner::GptRunnerFactory;
 use crate::node::data_aggregator::node::DataAggregatorNode;
 use crate::node::data_aggregator::runner::DataAggregatorRunnerFactory;
 use crate::node::http::node::HttpNode;
@@ -74,6 +76,7 @@ impl NodeRegisterBus {
             Box::new(DataAggregatorNode::new()),
             Box::new(DataAggregatorRunnerFactory::new()),
         );
+        self.register(Box::new(GptNode::new()), Box::new(GptRunnerFactory::new()));
         self
     }
 

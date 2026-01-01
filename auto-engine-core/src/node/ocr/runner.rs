@@ -44,7 +44,7 @@ impl NodeRunner for OcrRunner {
         ctx: &Context,
         param: Self::ParamType,
     ) -> Result<Option<HashMap<String, serde_json::Value>>, String> {
-        let mut resource_path_prefix = ctx.resource_path().to_string_lossy().replace(r"\\?\", "").to_string();
+        let mut resource_path_prefix = ctx.path_resource().to_string_lossy().replace(r"\\?\", "").to_string();
 
         if resource_path_prefix != "" {
             resource_path_prefix = format!("{}/", resource_path_prefix);
@@ -66,20 +66,24 @@ impl NodeRunner for OcrRunner {
         let results = ocr.predict(vec![image]).map_err(|e| e.to_string())?;
         let mut res = HashMap::new();
 
-        for text_region in &results[0].text_regions {
-            if let Some((text, confidence)) = text_region.text_with_confidence() {
-                let text = if param.digits_only {
-                    self.extract_digits(text)
-                } else {
-                    text.to_string()
-                };
-                res.insert("text".to_string(), serde_json::json!(text));
-                res.insert("confidence".to_string(), serde_json::json!(confidence));
-                return Ok(Some(res));
+        let mut text_res = "".to_string();
+        for ocr_res in &results {
+            for text_region in ocr_res.text_regions.clone() {
+                if let Some((text, _)) = text_region.text_with_confidence() {
+                    let text = if param.digits_only {
+                        self.extract_digits(text)
+                    } else {
+                        text.to_string()
+                    };
+                    text_res.push_str(&text);
+                    log::info!("======> {}", text);
+                    log::info!("======> {}", text_res);
+                }
             }
         }
+        res.insert("text".to_string(), serde_json::json!(text_res));
 
-        Ok(None)
+        Ok(Some(res))
     }
 }
 

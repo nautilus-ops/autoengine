@@ -24,7 +24,7 @@ impl Conditions {
         if let Some(key) = &self.exist
             && key != ""
         {
-            let values = ctx.string_value.read().await;
+            let values = ctx.value.read().await;
             if !values.contains_key(key) {
                 log::info!("{} does not exist, {:?}", key, values);
                 return Ok(ConditionResult {
@@ -37,7 +37,7 @@ impl Conditions {
         if let Some(key) = &self.not_exist
             && key != ""
         {
-            let values = ctx.string_value.read().await;
+            let values = ctx.value.read().await;
             if values.contains_key(key) {
                 log::info!("{} does not exist, {:?}", key, values);
                 return Ok(ConditionResult {
@@ -57,14 +57,14 @@ impl Conditions {
                     log::error!("{}", err);
                     return Ok(ConditionResult {
                         pass: false,
-                        reason: Some(err.to_string()),
+                        reason: Some(format!("{} condition err: {}", condition, err)),
                     });
                 }
             };
             if condition.trim() == "" {
                 return Ok(ConditionResult {
                     pass: false,
-                    reason: Some(condition.clone()),
+                    reason: Some(format!("{} does not pass condition", condition)),
                 });
             }
             let result = evalexpr::eval_boolean(&condition)
@@ -73,12 +73,12 @@ impl Conditions {
                 log::info!("{} does not pass condition", condition);
                 return Ok(ConditionResult {
                     pass: false,
-                    reason: Some(condition.clone()),
+                    reason: Some(format!("{} does not pass condition", condition)),
                 });
             }
         }
         Ok(ConditionResult {
-            pass: false,
+            pass: true,
             reason: None,
         })
     }

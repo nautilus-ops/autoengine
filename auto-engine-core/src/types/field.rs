@@ -26,6 +26,12 @@ pub struct BooleanConstraint {
     pub equals: bool,
 }
 
+impl BooleanConstraint {
+    pub fn from(value: bool) -> Self {
+        Self { equals: value }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct StringConstraint {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -110,6 +116,7 @@ pub enum FieldType {
     Object,
     Image,
     File,
+    Password,
 }
 #[derive(Clone, Default, Serialize, Debug, Deserialize)]
 pub struct SchemaField {
