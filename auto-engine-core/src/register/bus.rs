@@ -1,5 +1,11 @@
 use crate::node::ai::gpt::node::GptNode;
 use crate::node::ai::gpt::runner::GptRunnerFactory;
+use crate::node::base64_decode::node::Base64DecodeNode;
+use crate::node::base64_decode::runner::Base64DecodeRunnerFactory;
+use crate::node::base64_encode::node::Base64EncodeNode;
+use crate::node::base64_encode::runner::Base64EncodeRunnerFactory;
+use crate::node::file_write::node::FileWriteNode;
+use crate::node::file_write::runner::FileWriteRunnerFactory;
 use crate::node::data_aggregator::node::DataAggregatorNode;
 use crate::node::data_aggregator::runner::DataAggregatorRunnerFactory;
 use crate::node::http::node::HttpNode;
@@ -77,6 +83,18 @@ impl NodeRegisterBus {
         self.register(
             Box::new(DataAggregatorNode::new()),
             Box::new(DataAggregatorRunnerFactory::new()),
+        );
+        self.register(
+            Box::new(Base64EncodeNode::new()),
+            Box::new(Base64EncodeRunnerFactory::new()),
+        );
+        self.register(
+            Box::new(Base64DecodeNode::new()),
+            Box::new(Base64DecodeRunnerFactory::new()),
+        );
+        self.register(
+            Box::new(FileWriteNode::new()),
+            Box::new(FileWriteRunnerFactory::new()),
         );
         self.register(
             Box::new(TextReplaceNode::new()),

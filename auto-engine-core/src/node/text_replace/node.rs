@@ -22,7 +22,7 @@ impl NodeDefine for TextReplaceNode {
 
     fn name(&self) -> I18nValue {
         I18nValue {
-            zh: "字符串替换".to_string(),
+            zh: "文本替换".to_string(),
             en: "Text Replace".to_string(),
         }
     }
@@ -115,6 +115,19 @@ impl NodeDefine for TextReplaceNode {
                 condition: None,
             },
             SchemaField {
+                name: "replacements_json".to_string(),
+                field_type: FieldType::String,
+                item_type: None,
+                description: Some(I18nValue {
+                    zh: "批量替换映射，JSON 对象字符串，形如 {\"旧\":\"新\"}".to_string(),
+                    en: "Batch replacement map as JSON object string, e.g. {\"old\":\"new\"}"
+                        .to_string(),
+                }),
+                enums: vec![],
+                default: Some("".to_string()),
+                condition: None,
+            },
+            SchemaField {
                 name: "use_regex".to_string(),
                 field_type: FieldType::Boolean,
                 item_type: None,
@@ -135,7 +148,7 @@ impl NodeDefine for TextReplaceNode {
                     en: "Ignore case when using regex".to_string(),
                 }),
                 enums: vec![],
-                default: Some("false".to_string()),
+                default: None,
                 condition: Some(Condition::Field(FieldCondition {
                     field: "use_regex".to_string(),
                     constraint: ValueConstraint::Boolean(BooleanConstraint { equals: true }),

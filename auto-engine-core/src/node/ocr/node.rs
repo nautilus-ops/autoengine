@@ -47,47 +47,47 @@ impl NodeDefine for OcrNode {
     }
 
     fn output_schema(&self, _input: HashMap<String, serde_json::Value>) -> Vec<SchemaField> {
+        vec![SchemaField {
+            name: "text".to_string(),
+            field_type: FieldType::String,
+            item_type: None,
+            description: Some(I18nValue {
+                zh: "首个识别出的文本".to_string(),
+                en: "First recognized text".to_string(),
+            }),
+            enums: vec![],
+            default: None,
+            condition: None,
+        }]
+    }
+
+    fn input_schema(&self) -> Vec<SchemaField> {
         vec![
             SchemaField {
-                name: "text".to_string(),
-                field_type: FieldType::String,
+                name: "image".to_string(),
+                field_type: FieldType::File,
                 item_type: None,
                 description: Some(I18nValue {
-                    zh: "首个识别出的文本".to_string(),
-                    en: "First recognized text".to_string(),
+                    zh: "待识别的图片路径，支持绝对路径或相对工作流 files 目录。".to_string(),
+                    en: "Image path for OCR, absolute or relative to the workflow files directory."
+                        .to_string(),
+                }),
+                enums: vec![],
+                default: None,
+                condition: None,
+            },
+            SchemaField {
+                name: "digits_only".to_string(),
+                field_type: FieldType::Boolean,
+                item_type: None,
+                description: Some(I18nValue {
+                    zh: "仅保留 ASCII 数字字符，过滤其他字符。".to_string(),
+                    en: "Keep only ASCII digits, filtering out other characters.".to_string(),
                 }),
                 enums: vec![],
                 default: None,
                 condition: None,
             },
         ]
-    }
-
-    fn input_schema(&self) -> Vec<SchemaField> {
-        vec![SchemaField {
-            name: "image".to_string(),
-            field_type: FieldType::File,
-            item_type: None,
-            description: Some(I18nValue {
-                zh: "待识别的图片路径，支持绝对路径或相对工作流 files 目录。".to_string(),
-                en: "Image path for OCR, absolute or relative to the workflow files directory."
-                    .to_string(),
-            }),
-            enums: vec![],
-            default: None,
-            condition: None,
-        },
-        SchemaField {
-            name: "digits_only".to_string(),
-            field_type: FieldType::Boolean,
-            item_type: None,
-            description: Some(I18nValue {
-                zh: "仅保留 ASCII 数字字符，过滤其他字符。".to_string(),
-                en: "Keep only ASCII digits, filtering out other characters.".to_string(),
-            }),
-            enums: vec![],
-            default: Some("false".to_string()),
-            condition: None,
-        }]
     }
 }

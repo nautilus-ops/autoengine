@@ -100,8 +100,10 @@ impl NodeRunner for HttpRunner {
             .await
             .map_err(|e| format!("Failed to read response: {}", e))?;
 
-        let body_obj: serde_json::Value = serde_json::from_str(&body)
-            .map_err(|e| format!("Failed to parse response body: {}", e))?;
+        let body_obj: serde_json::Value = serde_json::from_str(&body).unwrap_or_else(|e| {
+            log::warn!("Failed to parse response body as JSON: {}", e);
+            serde_json::json!(body)
+        });
 
         let mut res = HashMap::new();
         res.insert("status".to_string(), serde_json::json!(status));

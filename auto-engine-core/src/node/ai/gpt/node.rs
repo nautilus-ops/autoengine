@@ -153,7 +153,7 @@ impl NodeDefine for GptNode {
             },
             SchemaField {
                 name: "system".to_string(),
-                field_type: FieldType::String,
+                field_type: FieldType::Text,
                 item_type: None,
                 description: Some(I18nValue {
                     zh: "系统提示词，可为空".to_string(),
@@ -169,7 +169,7 @@ impl NodeDefine for GptNode {
             },
             SchemaField {
                 name: "prompt".to_string(),
-                field_type: FieldType::String,
+                field_type: FieldType::Text,
                 item_type: None,
                 description: Some(I18nValue {
                     zh: "用户提示词".to_string(),

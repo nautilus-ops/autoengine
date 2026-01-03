@@ -309,6 +309,7 @@ dependencies = [
  "async-trait",
  "auto-engine-macro",
  "axum",
+ "base64 0.22.1",
  "bytes",
  "convert_case 0.10.0",
  "enigo",
@@ -334,6 +335,7 @@ dependencies = [
  "toml 0.9.10+spec-1.1.0",
  "tracing",
  "tracing-subscriber",
+ "uuid",
  "wasmtime",
  "wasmtime-wasi",
 ]

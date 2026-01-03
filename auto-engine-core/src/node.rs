@@ -1,4 +1,7 @@
 pub mod data_aggregator;
+pub mod base64_decode;
+pub mod base64_encode;
+pub mod file_write;
 pub mod http;
 pub mod image_match;
 pub mod keyboard;
