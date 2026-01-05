@@ -35,8 +35,8 @@ impl NodeDefine for TextReplaceNode {
 
     fn category(&self) -> Option<I18nValue> {
         Some(I18nValue {
-            zh: "数据处理".to_string(),
-            en: "Data Processing".to_string(),
+            zh: "文本处理".to_string(),
+            en: "Text Processing".to_string(),
         })
     }
 

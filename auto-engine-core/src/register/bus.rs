@@ -24,6 +24,8 @@ use crate::node::screen_capture::node::ScreenCaptureNode;
 use crate::node::screen_capture::runner::ScreenCaptureRunnerFactory;
 use crate::node::text_replace::node::TextReplaceNode;
 use crate::node::text_replace::runner::TextReplaceRunnerFactory;
+use crate::node::text_case::node::TextCaseConvertNode;
+use crate::node::text_case::runner::TextCaseConvertRunnerFactory;
 use crate::node::start::node::StartNode;
 use crate::node::start::runner::StartRunnerFactory;
 use crate::node::time_wait::node::TimeWaitNode;
@@ -95,6 +97,10 @@ impl NodeRegisterBus {
         self.register(
             Box::new(FileWriteNode::new()),
             Box::new(FileWriteRunnerFactory::new()),
+        );
+        self.register(
+            Box::new(TextCaseConvertNode::new()),
+            Box::new(TextCaseConvertRunnerFactory::new()),
         );
         self.register(
             Box::new(TextReplaceNode::new()),
