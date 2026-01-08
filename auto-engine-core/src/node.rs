@@ -1,4 +1,7 @@
 pub mod data_aggregator;
+pub mod base64_decode;
+pub mod base64_encode;
+pub mod file_write;
 pub mod http;
 pub mod image_match;
 pub mod keyboard;
@@ -7,7 +10,10 @@ pub mod mouse_move;
 pub mod ocr;
 pub mod screen_capture;
 pub mod start;
+pub mod text_case;
+pub mod text_replace;
 pub mod time_wait;
+pub mod time_now;
 #[cfg(feature = "wasm")]
 pub mod wasm;
 pub mod ai;

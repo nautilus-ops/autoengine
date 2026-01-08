@@ -110,6 +110,7 @@ impl Default for Condition {
 pub enum FieldType {
     #[default]
     String,
+    Text,   // for long content
     Number,
     Boolean,
     Array,

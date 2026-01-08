@@ -110,17 +110,26 @@ impl NodeRunner for GptRunner {
         let mut messages: Vec<ChatCompletionRequestMessage> = vec![];
 
         // context prompt
-        {
-            let context_prompt = self.build_context_prompt(ctx).await;
-            messages.push(
-                ChatCompletionRequestSystemMessageArgs::default()
-                    .content(context_prompt)
-                    .build()
-                    .map_err(|e| format!("failed to build system message: {}", e))?
-                    .into(),
-            );
-        }
+        // {
+        //     let context_prompt = self.build_context_prompt(ctx).await;
+        //     messages.push(
+        //         ChatCompletionRequestSystemMessageArgs::default()
+        //             .content(context_prompt)
+        //             .build()
+        //             .map_err(|e| format!("failed to build system message: {}", e))?
+        //             .into(),
+        //     );
+        // }
 
+        {
+                messages.push(
+                    ChatCompletionRequestSystemMessageArgs::default()
+                        .content(String::from("The generated content needs to be placed in the data section: {\"data\": object}"))
+                        .build()
+                        .map_err(|e| format!("failed to build system message: {}", e))?
+                        .into(),
+                );
+        }
         // user set system prompt
         if let Some(system_prompt) = param
             .system
@@ -153,7 +162,6 @@ impl NodeRunner for GptRunner {
         }
 
         let request = CreateChatCompletionRequestArgs::default()
-            .max_tokens(512u32)
             .model(param.model)
             .response_format(ResponseFormat::JsonSchema {
                 json_schema: response_schema,
@@ -188,6 +196,7 @@ impl NodeRunner for GptRunner {
                     .inspect_err(|e| log::error!("chat message: {}, error: {}", content, e))
                     .map_err(|e| format!("failed to parse chat message: {}", e))?;
 
+            log::info!("OpenAI chat message: {}", content);
             res.insert("data".to_string(), serde_json::json!(data.get("data")));
         }
 

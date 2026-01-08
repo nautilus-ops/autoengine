@@ -1,6 +1,7 @@
 use crate::utils;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tauri::Manager;
@@ -99,19 +100,29 @@ impl Context {
     }
 
     pub fn path_image(&self, image: &str) -> Result<PathBuf, String> {
-        let image_path = self.workflow_path.join("images").join(image);
+        let image_path = self.workflow_path.join("files").join(image);
         if !image_path.exists() {
             return Err(format!("Image {} does not exist", image));
         }
         Ok(image_path)
     }
+    pub fn path_files(&self) -> Result<PathBuf, String> {
+        let dir = self.workflow_path.join("files");
+        if !dir.exists() {
+            fs::create_dir_all(&dir).map_err(|e| format!("Failed to create files dir: {}", e))?;
+        }
+        Ok(dir)
+    }
 
     pub fn path_resource(&self) -> PathBuf {
-        if let Some(handle) = self.app_handle.clone() {
-            if cfg!(debug_assertions) {
-                return PathBuf::from("");
+        #[cfg(feature = "tauri")]
+        {
+            if let Some(handle) = self.app_handle.clone() {
+                if cfg!(debug_assertions) {
+                    return PathBuf::from("");
+                }
+                return handle.path().resource_dir().unwrap().to_path_buf();
             }
-            return handle.path().resource_dir().unwrap().to_path_buf();
         }
         PathBuf::from("")
     }

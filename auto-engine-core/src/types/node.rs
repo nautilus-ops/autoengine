@@ -86,9 +86,17 @@ where
                 .clone();
 
             if let serde_json::Value::String(s) = &val {
-                let res = utils::parse_variables(ctx, s).await;
+                let mut res = utils::parse_variables(ctx, s).await;
+
+                res = res.replace("\\n", "\n").replace("\\\"", "\"").replace("\\r", "\r");
+                // res = serde_json::to_string(&res).map_err(|e| format!("Failed to parse node parameters: {}", e))?;
+                // res = serde_json::from_str(&res).map_err(|e| format!("Failed to parse node parameters: {}", e))?;
+
+                log::info!("{}", res);
+
                 val = match field.field_type {
                     FieldType::String
+                    | FieldType::Text
                     | FieldType::Image
                     | FieldType::File
                     | FieldType::Password => serde_json::Value::String(res.clone()),
@@ -146,15 +154,19 @@ where
                 for field in &output_schema {
                     if field.name.as_str() == name.as_str() {
                         description = field.description.clone().unwrap_or(Default::default()).en;
-                        break
+                        break;
                     }
                 }
                 log::info!(
                     "set value {}",
                     format!("ctx.{}.{}", node_name, name).as_str()
                 );
-                ctx.set_value(format!("ctx.{}.{}", node_name, name).as_str(), value, description)
-                    .await?;
+                ctx.set_value(
+                    format!("ctx.{}.{}", node_name, name).as_str(),
+                    value,
+                    description,
+                )
+                .await?;
             }
             return Ok(Some(result));
         }

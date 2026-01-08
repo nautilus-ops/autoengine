@@ -345,7 +345,7 @@ fn handle_nod(
                         emitter
                             .emit(
                                 NODE_EVENT,
-                                NodeEventPayload::error::<String>(node_id.clone(), None),
+                                NodeEventPayload::error::<String>(node_id.clone(), Some(err.clone())),
                             )
                             .unwrap_or_default();
                         return Err(err);
