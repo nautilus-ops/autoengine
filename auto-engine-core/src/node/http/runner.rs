@@ -40,10 +40,10 @@ impl HttpRunner {
         let mut map = HeaderMap::new();
         if let Some(list) = headers {
             for item in list {
-                let parts: Vec<&str> = item.splitn(2, ':').collect();
+                let parts: Vec<&str> = item.splitn(2, |c| c == ':' || c == '=').collect();
                 if parts.len() != 2 {
                     return Err(format!(
-                        "Invalid header format '{}', expected 'Key: Value'",
+                        "Invalid header format '{}', expected 'Key: Value' or 'Key=Value'",
                         item
                     ));
                 }
@@ -84,7 +84,9 @@ impl NodeRunner for HttpRunner {
             .timeout(Duration::from_millis(params.timeout_ms));
 
         let request = if params.method.eq_ignore_ascii_case("POST") && !params.body.is_empty() {
-            request.body(params.body)
+            let body: serde_json::Value =
+                serde_json::from_str(&params.body).map_err(|e| e.to_string())?;
+            request.json(&body)
         } else {
             request
         };
@@ -129,5 +131,49 @@ impl Default for HttpRunnerFactory {
 impl NodeRunnerFactory for HttpRunnerFactory {
     fn create(&self) -> Box<dyn NodeRunnerControl> {
         Box::new(NodeRunnerController::new(HttpRunner::new()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_headers_accepts_colon_and_equals() {
+        let runner = HttpRunner::new();
+        let headers = runner
+            .parse_headers(Some(vec![
+                "Content-Type: application/json".to_string(),
+                "Authorization=Bearer token123".to_string(),
+            ]))
+            .expect("headers should parse");
+
+        assert_eq!(
+            headers
+                .get("Content-Type")
+                .and_then(|h| h.to_str().ok())
+                .unwrap(),
+            "application/json"
+        );
+        assert_eq!(
+            headers
+                .get("Authorization")
+                .and_then(|h| h.to_str().ok())
+                .unwrap(),
+            "Bearer token123"
+        );
+    }
+
+    #[test]
+    fn parse_headers_rejects_invalid_format() {
+        let runner = HttpRunner::new();
+        let err = runner
+            .parse_headers(Some(vec!["InvalidHeader".to_string()]))
+            .unwrap_err();
+        assert!(
+            err.contains("Invalid header format"),
+            "unexpected error message: {}",
+            err
+        );
     }
 }

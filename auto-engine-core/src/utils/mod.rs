@@ -6,6 +6,34 @@ use std::collections::HashMap;
 pub static REGEX_PARSE_VARIABLES: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"\$\{([^}:]+(?:\.[^}:]+)*)(?::([^}]*))?}").unwrap());
 
+fn parse_part(part: &str, var_name: &str) -> Result<(String, Vec<usize>), String> {
+    let key_end = part.find('[').unwrap_or(part.len());
+    let key = &part[..key_end];
+    if key.is_empty() {
+        return Err(format!("invalid path `{}`", var_name));
+    }
+
+    let mut indices = Vec::new();
+    let mut rest = &part[key_end..];
+    while !rest.is_empty() {
+        if !rest.starts_with('[') {
+            return Err(format!("invalid path `{}`", var_name));
+        }
+
+        let Some(end) = rest.find(']') else {
+            return Err(format!("invalid path `{}`", var_name));
+        };
+        let idx_str = &rest[1..end];
+        let idx = idx_str
+            .parse::<usize>()
+            .map_err(|_| format!("invalid array index `{}` in `{}`", idx_str, var_name))?;
+        indices.push(idx);
+        rest = &rest[end + 1..];
+    }
+
+    Ok((key.to_string(), indices))
+}
+
 fn stringify_value(value: &serde_json::Value) -> String {
     serde_json::to_string(value)
         .unwrap_or_default()
@@ -27,20 +55,34 @@ fn resolve_variable_value(
         };
 
         for key in parts.iter().skip(3) {
-            match value {
-                serde_json::Value::Object(map) => {
-                    if let Some(next_value) = map.get(*key) {
-                        value = next_value.clone();
-                    } else {
-                        return Err(format!("variable `{}` not found", var_name));
-                    }
-                }
+            let (key, indices) = parse_part(key, var_name)?;
+
+            value = match value {
+                serde_json::Value::Object(map) => map
+                    .get(&key)
+                    .cloned()
+                    .ok_or_else(|| format!("variable `{}` not found", var_name))?,
                 _ => {
                     return Err(format!(
                         "variable `{}` is not an object, cannot access `{}`",
                         ctx_key, key
                     ))
                 }
+            };
+
+            for idx in indices {
+                value = match value {
+                    serde_json::Value::Array(arr) => arr
+                        .get(idx)
+                        .cloned()
+                        .ok_or_else(|| format!("index {} out of bounds for `{}`", idx, var_name))?,
+                    _ => {
+                        return Err(format!(
+                            "variable `{}` is not an array, cannot access index `[{}]`",
+                            var_name, idx
+                        ))
+                    }
+                };
             }
         }
 
@@ -137,6 +179,14 @@ mod tests {
                 content: "${ctx.node.output.sub.value}".to_string(),
                 expected: "nested".to_string(),
             },
+            TestCase {
+                content: "${ctx.node.output.sub.list[0]}".to_string(),
+                expected: "1".to_string(),
+            },
+            TestCase {
+                content: "${ctx.node.output.sub.matrix[1][0]}".to_string(),
+                expected: "3".to_string(),
+            },
         ];
 
         #[cfg(feature = "tauri")]
@@ -153,7 +203,7 @@ mod tests {
         context
             .set_value(
                 "ctx.node.output",
-                json!({"sub": {"value": "nested"}}),
+                json!({"sub": {"value": "nested", "list": [1, 2], "matrix": [[1, 2], [3, 4]]}}),
                 String::new(),
             )
             .await
@@ -179,6 +229,27 @@ mod tests {
             .unwrap();
 
         let result = try_parse_variables(&context, "${ctx.node.output.missing}").await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_try_parse_variables_array_error() {
+        #[cfg(feature = "tauri")]
+        let context = Context::new(PathBuf::new(), None);
+
+        #[cfg(not(feature = "tauri"))]
+        let context = Context::new(PathBuf::new());
+
+        context
+            .set_value(
+                "ctx.node.output",
+                json!({"sub": {"list": [1, 2]}}),
+                String::new(),
+            )
+            .await
+            .unwrap();
+
+        let result = try_parse_variables(&context, "${ctx.node.output.sub.list[5]}").await;
         assert!(result.is_err());
     }
 }

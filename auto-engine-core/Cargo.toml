@@ -38,6 +38,8 @@ async-openai = { version = "0.32.2", features = ["responses", "completions", "ch
 secrecy = "0.10"
 bytes = "1.11.0"
 uuid = { version = "1.11.0", features = ["v4"] }
+chrono = { version = "0.4.42", features = ["serde"] }
+chrono-tz = "0.10.1"
 
 [features]
 default = ["types", "context", "event", "pipeline", "runner", "utils"]

@@ -13,6 +13,7 @@ pub mod start;
 pub mod text_case;
 pub mod text_replace;
 pub mod time_wait;
+pub mod time_now;
 #[cfg(feature = "wasm")]
 pub mod wasm;
 pub mod ai;

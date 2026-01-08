@@ -105,8 +105,8 @@ impl NodeDefine for HttpNode {
                 field_type: FieldType::Array,
                 item_type: Some(FieldType::String),
                 description: Some(I18nValue {
-                    zh: "可选请求头列表，格式：Key: Value".to_string(),
-                    en: "Optional headers list, format: Key: Value".to_string(),
+                    zh: "可选请求头列表，格式：Key: Value 或 Key=Value".to_string(),
+                    en: "Optional headers list, format: Key: Value or Key=Value".to_string(),
                 }),
                 enums: vec![],
                 default: None,

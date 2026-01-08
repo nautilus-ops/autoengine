@@ -28,6 +28,8 @@ use crate::node::text_case::node::TextCaseConvertNode;
 use crate::node::text_case::runner::TextCaseConvertRunnerFactory;
 use crate::node::start::node::StartNode;
 use crate::node::start::runner::StartRunnerFactory;
+use crate::node::time_now::node::TimeNowNode;
+use crate::node::time_now::runner::TimeNowRunnerFactory;
 use crate::node::time_wait::node::TimeWaitNode;
 use crate::node::time_wait::runner::TimeWaitRunnerFactory;
 use crate::types::node::{NodeDefine, NodeRunnerControl, NodeRunnerFactory};
@@ -81,6 +83,10 @@ impl NodeRegisterBus {
         self.register(
             Box::new(TimeWaitNode::new()),
             Box::new(TimeWaitRunnerFactory::new()),
+        );
+        self.register(
+            Box::new(TimeNowNode::new()),
+            Box::new(TimeNowRunnerFactory::new()),
         );
         self.register(
             Box::new(DataAggregatorNode::new()),
